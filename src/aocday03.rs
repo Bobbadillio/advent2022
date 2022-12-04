@@ -1,30 +1,23 @@
 use std::char::ParseCharError;
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashSet};
 use nom::{
-    character::complete::{newline, anychar},
+    character::complete::newline,
     combinator::opt,
-    multi::{many1, many0},
+    multi::many1,
     sequence::tuple,
     IResult,
 };
 
 use std::fs;
-use std::mem::take;
-use std::ops::Not;
-use nom::bytes::complete::{take_while, tag};
+use std::hash::Hash;
+use std::time::Instant;
+use nom::bytes::complete::take_while;
 use nom::combinator::map_res;
-
-const EXAMPLE : &str = r#"vJrwpWtwJgWrhcsFMMfFFhFp
-jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
-PmmdzqPrVvPwwTWBwg
-wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
-ttgJtRGJQctTZtZT
-CrZsJsPPZsGzwwsLwLmpwMDw"#;
 
 #[derive(Debug)]
 struct RuckSack {
-    left: BTreeSet<char>,
-    right: BTreeSet<char>
+    left: HashSet<char>,
+    right: HashSet<char>
 
 }
 
@@ -33,8 +26,8 @@ impl RuckSack {
         let midpoint = charline.len()/2;
         let left_bytes = charline.chars().take(midpoint);
         let right_bytes = charline.chars().skip(midpoint).take(midpoint);
-        let left: BTreeSet<char> = left_bytes.collect();
-        let right: BTreeSet<char> = right_bytes.collect();
+        let left: HashSet<char> = left_bytes.collect();
+        let right: HashSet<char> = right_bytes.collect();
         Ok(RuckSack{left, right})
     }
 
@@ -42,133 +35,75 @@ impl RuckSack {
         let overlap = self.left.intersection(&self.right).next()?;
         Some(*overlap)
     }
-
-    fn overlap_from_str(charline: &str) -> Option<char> {
-        if let Ok(sack) = RuckSack::from_str(charline) {
-            Some(sack.find_overlap()?)
-        } else {
-            None
-        }
-    }
 }
 
 fn is_not_newline(input: char) -> bool {
     input != '\n'
 }
 
-fn line_to_sack(input: &str) -> IResult<&str, RuckSack> {
-    println!("input len is {}", input.len());
-    let (leftover, (sack, _)) = tuple((map_res(take_while(is_not_newline), RuckSack::from_str), opt(newline)))(input)?;
-    println!("returning sack {:?}", sack);
-    // let (leftover, (sack,_)) = tuple((RuckSack::from_str, opt(newline)))(input)?;
-    Ok((leftover,sack))
-}
-
-fn line_to_overlap(input: &str) -> IResult<&str, Option<char>> {
-    println!("input len is {}", input.len());
-    // println!("[{}]",input);
-    let (leftover, (sack, _)) = tuple((map_res(take_while(is_not_newline), RuckSack::from_str), opt(newline)))(input)?;
-    // let (leftover, (sack,_)) = tuple((RuckSack::from_str, opt(newline)))(input)?;
-    println!("returning overlap {:?}", sack.find_overlap());
-    Ok((leftover,sack.find_overlap()))
-}
-
-fn lines_to_sacks(input: &str) -> IResult<&str, Vec<RuckSack>> {
-    let (leftover, sacks) = many0(line_to_sack)(input)?;
-    Ok((leftover, sacks))
-
-}
-
-fn lines_to_overlaps(input: &str) -> IResult<&str, Vec<Option<char>>> {
-    many0(line_to_overlap)(input)
-}
-
-// fn line_to_overlap(input: &str) -> IResult<&str, &u8> {
-//     let (leftover, chars) = take_while(is_not_newline)(input)?;
-//     let (leftover, _ ) = opt(newline);
-//     let sack = RuckSack::from_str(chars)?;
-//     Ok((leftover, sack.find_overlap()))
-// }
-
-#[derive(Debug)]
-enum RPSKind {
-    Rock,
-    Paper,
-    Scissor
-}
-
-fn line_to_kinds_pt1(input: &str) -> IResult<&str, (RPSKind, RPSKind)> {
-    let (leftover, (p1_symbol,_,p2_symbol,_)) = tuple((anychar,tag(" "), anychar, opt(newline)))(input)?;
-    let p1 = match p1_symbol {
-        'A' => RPSKind::Rock,
-        'B' => RPSKind::Paper,
-        _ => RPSKind::Scissor
-    };
-    let p2 = match p2_symbol {
-        'X' => RPSKind::Rock,
-        'Y' => RPSKind::Paper,
-        _ => RPSKind::Scissor
-    };
-    Ok((leftover,(p1,p2)))
-}
-
-fn line_to_kinds_pt2(input: &str) -> IResult<&str, (RPSKind, RPSKind)> {
-    let (leftover, (p1_symbol,_,p2_symbol,_)) = tuple((anychar,tag(" "), anychar, opt(newline)))(input)?;
-    let (p1, p2) = match (p1_symbol, p2_symbol) {
-        ('A', 'X') => (RPSKind::Rock,    RPSKind::Scissor),
-        ('A', 'Y') => (RPSKind::Rock,    RPSKind::Rock),
-        ('A', 'Z') => (RPSKind::Rock,    RPSKind::Paper),
-        ('B', 'X') => (RPSKind::Paper,   RPSKind::Rock),
-        ('B', 'Y') => (RPSKind::Paper,   RPSKind::Paper),
-        ('B', 'Z') => (RPSKind::Paper,   RPSKind::Scissor),
-        ('C', 'X') => (RPSKind::Scissor, RPSKind::Paper),
-        ('C', 'Y') => (RPSKind::Scissor, RPSKind::Scissor),
-        ('C', 'Z') => (RPSKind::Scissor, RPSKind::Rock),
-        _other => panic!("this shouldn't happen...")
-    };
-    Ok((leftover,(p1,p2)))
-}
-
-fn kind_pair_to_points((p1, p2) : (&RPSKind, &RPSKind)) ->u32 {
-    let winning_points = match (p1,p2) {
-        (RPSKind::Scissor, RPSKind::Rock   )| (RPSKind::Paper, RPSKind::Scissor)| (RPSKind::Rock, RPSKind::Paper) => 6,
-        (RPSKind::Scissor, RPSKind::Scissor)| (RPSKind::Paper, RPSKind::Paper  )| (RPSKind::Rock, RPSKind::Rock ) => 3,
+fn get_priority(a_token: Option<char> ) -> u32 {
+    match a_token{
+        None => 0,
+        Some(a_char @ 'a'..='z') => a_char as u32 - 96,
+        Some(a_char @ 'A'..='Z') => a_char as u32 - 38,
         _ => 0
-    };
-    let throw_points = match p2 {
-        RPSKind::Rock => 1,
-        RPSKind::Paper => 2,
-        RPSKind::Scissor => 3
-    };
-    winning_points+throw_points
+    }
 }
 
-fn kinds_to_points(pairs : &[(RPSKind, RPSKind)]) ->u32 {
-    pairs.iter().map(|(p1, p2) |kind_pair_to_points((p1, p2))).sum()
+fn line_to_priority(input: &str) -> IResult<&str, u32> {
+    if input.is_empty() {
+        return Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Fail)));
+    }
+    let (leftover, (sack, _)) = tuple((map_res(take_while(is_not_newline), RuckSack::from_str), opt(newline)))(input)?;
+    let priority = get_priority( sack.find_overlap());
+
+    Ok((leftover,priority))
+}
+
+
+fn lines_to_priorities(input: &str) -> IResult<&str, Vec<u32>> {
+    many1(line_to_priority)(input)
+}
+
+fn line_to_chars(input: &str) -> IResult<&str, BTreeSet<char>> {
+    let (leftover, (chars, _)) = tuple((take_while(is_not_newline), opt(newline)))(input)?;
+    let a_set :BTreeSet<char> = chars.chars().collect();
+    Ok((leftover, a_set))
+}
+
+fn parse_trio_badge(input: &str) -> IResult<&str, u32> {
+    if input.is_empty() {
+        return Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Fail)));
+    }
+    let (leftover, (a,b,c)) = tuple((line_to_chars, line_to_chars, line_to_chars))(input)?;
+    let first = a.intersection(&b);
+
+    for each in first {
+        if c.contains(each) {
+            return Ok((leftover,get_priority(Some(*each))));
+        }
+    }
+    panic!("no common character");
+}
+
+fn parse_trio_badges(input: &str) -> IResult<&str, Vec<u32>> {
+    many1(parse_trio_badge)(input)
 }
 
 fn main() {
-    // println!("{:?}",line_to_sack(EXAMPLE));
-    // println!("{:?}",lines_to_overlaps(EXAMPLE));
-    println!("{:?}",lines_to_sacks(EXAMPLE));
+    let t0= Instant::now();
     let puzzle = fs::read_to_string("./AOCDay03.txt").unwrap();
 
-    use nom::{IResult, multi::many0, bytes::complete::tag};
-    use std::str;
-
-    fn mytag(i: &str) -> IResult<&str, &str>{
-        println!("multitag {}", i.len());
-        tag("abcd")(i)
+    let t1= Instant::now();
+    if let Ok((_, priorities)) = lines_to_priorities(&puzzle) {
+        println!("{}", priorities.iter().sum::<u32>())
     }
 
-    fn multi(i: &str) -> IResult<&str, Vec<&str>> {
-        many0(mytag)(i)
-    }
+    let t2= Instant::now();
+    if let Ok((_, badge_priorities)) = parse_trio_badges(&puzzle) {
+        println!("{}", badge_priorities.iter().sum::<u32>())
+    };
 
-    let a = "abcdef";
-    let b = "abcdabcdef";
-    let c = "azerty";
-    let d = "abcdabcd";
-    // println!("{:?}, {:?}, {:?}, {:?}", multi(a),multi(b),multi(c),multi(d));
-
+    let t3= Instant::now();
+    println!("timing info:\nload: {}\npt1: {}\npt2: {}",t1.duration_since(t0).as_micros(), t2.duration_since(t1).as_micros(),t3.duration_since(t2).as_micros());
 }
