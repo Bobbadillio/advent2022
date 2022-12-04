@@ -32,7 +32,7 @@ fn line_to_containment(input: &str) -> IResult<&str, u16> {
         (a,b,c,d) if (((a<=c) &( d<=b)) | ((c<=a) & (b<=d))) => 1,
         _ => 0
     }
-    ;
+        ;
     Ok((leftover,is_contained))
 }
 
