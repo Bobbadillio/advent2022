@@ -30,8 +30,7 @@ fn line_to_containment(input: &str) -> IResult<&str, u16> {
     let is_contained = match (a,b,c,d) {
         (a,b,c,d) if (((a<=c) &( d<=b)) | ((c<=a) & (b<=d))) => 1,
         _ => 0
-    }
-    ;
+    };
     Ok((leftover,is_contained))
 }
 
@@ -57,24 +56,17 @@ fn fold_lines_to_overlaps(input : &str) -> IResult<&str, u16 > {
 
 fn main() {
     let t0= Instant::now();
-    let puzzle = fs::read_to_string("./AOCDay04.txt").unwrap();
+    let puzzle = include_str!("../AOCDay04.txt");
 
     let t1= Instant::now();
-    // match lines_to_containments(&puzzle) {
-    //     Ok((_, res)) => {println!("pt1: {}", res.iter().sum::<u16>())},
-    //     _ => println!("error!")
-    // }
-    match fold_lines_to_containments(&puzzle) {
+    match fold_lines_to_containments(puzzle) {
         Ok((_, res)) => {println!("pt1: {}", res)},
         _ => println!("error!")
     }
 
     let t2= Instant::now();
-    // match lines_to_overlaps(&puzzle) {
-    //     Ok((_, res)) => {println!("pt2: {}", res.iter().sum::<u16>())},
-    //     _ => println!("error!")
-    // }
-    match fold_lines_to_overlaps(&puzzle) {
+
+    match fold_lines_to_overlaps(puzzle) {
         Ok((_, res)) => {println!("pt2: {}", res)},
         _ => println!("error!")
     }
