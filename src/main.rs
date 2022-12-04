@@ -12,13 +12,6 @@ use std::fs;
 use nom::bytes::complete::take_while;
 use nom::combinator::map_res;
 
-const EXAMPLE : &str = r#"vJrwpWtwJgWrhcsFMMfFFhFp
-jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
-PmmdzqPrVvPwwTWBwg
-wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
-ttgJtRGJQctTZtZT
-CrZsJsPPZsGzwwsLwLmpwMDw"#;
-
 #[derive(Debug)]
 struct RuckSack {
     left: BTreeSet<char>,
@@ -46,23 +39,6 @@ fn is_not_newline(input: char) -> bool {
     input != '\n'
 }
 
-fn line_to_sack(input: &str) -> IResult<&str, RuckSack> {
-    if input.is_empty() {
-        return Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Fail)));
-    }
-    let (leftover, (sack, _)) = tuple((map_res(take_while(is_not_newline), RuckSack::from_str), opt(newline)))(input)?;
-    Ok((leftover,sack))
-}
-
-fn line_to_overlap(input: &str) -> IResult<&str, Option<char>> {
-    if input.is_empty() {
-        return Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Fail)));
-    }
-    let (leftover, (sack, _)) = tuple((map_res(take_while(is_not_newline), RuckSack::from_str), opt(newline)))(input)?;
-
-    Ok((leftover,sack.find_overlap()))
-}
-
 fn get_priority(a_token: Option<char> ) -> u32 {
     match a_token{
         None => 0,
@@ -82,15 +58,6 @@ fn line_to_priority(input: &str) -> IResult<&str, u32> {
     Ok((leftover,priority))
 }
 
-fn lines_to_sacks(input: &str) -> IResult<&str, Vec<RuckSack>> {
-    let (leftover, sacks) = many1(line_to_sack)(input)?;
-    Ok((leftover, sacks))
-
-}
-
-fn lines_to_overlaps(input: &str) -> IResult<&str, Vec<Option<char>>> {
-    many1(line_to_overlap)(input)
-}
 
 fn lines_to_priorities(input: &str) -> IResult<&str, Vec<u32>> {
     many1(line_to_priority)(input)
@@ -122,24 +89,6 @@ fn parse_trio_badges(input: &str) -> IResult<&str, Vec<u32>> {
 }
 
 fn main() {
-    // println!("{:?}",line_to_sack(EXAMPLE));
-    // println!("{:?}",lines_to_overlaps(EXAMPLE));
-    // if let Ok((_, result) ) = parse_trio_badge(EXAMPLE) {
-    //     println!("{:?}",result);
-    // }
-    //
-    // if let Ok((_, result) ) = line_to_chars(EXAMPLE) {
-    //     println!("{:?}",result);
-    // }
-    // if let Ok((_, result) ) = lines_to_sacks(EXAMPLE) {
-    //     println!("{:?}",result);
-    // }
-    // if let Ok((_, result) ) = lines_to_overlaps(EXAMPLE) {
-    //     println!("{:?}",result);
-    // }
-    // if let Ok((_, result) ) = lines_to_priorities(EXAMPLE) {
-    //     println!("{:?}",result);
-    // }
     let puzzle = fs::read_to_string("./AOCDay03.txt").unwrap();
 
     if let Ok((_, priorities)) = lines_to_priorities(&puzzle) {
