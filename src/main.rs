@@ -1,8 +1,8 @@
 use nom::{
     character::complete::newline,
     combinator::{opt,map_res},
-    bytes::complete::take_while,
-    multi::many1,
+    bytes::complete::{take_while,tag},
+    multi::fold_many1,
     sequence::tuple,
     IResult,
 };
@@ -10,7 +10,6 @@ use nom::{
 use std::fs;
 use std::num::ParseIntError;
 use std::time::Instant;
-use nom::bytes::complete::tag;
 
 fn from_digits(input: &str) -> Result<u16, ParseIntError> {
     input.parse::<u16>()
@@ -48,12 +47,12 @@ fn line_to_overlap(input: &str) -> IResult<&str, u16> {
     Ok((leftover, is_overlap))
 }
 
-fn lines_to_containments(input : &str) -> IResult<&str, Vec<u16>> {
-    many1(line_to_containment)(input)
+fn fold_lines_to_containments(input : &str) -> IResult<&str, u16> {
+    fold_many1(line_to_containment, ||0, |a,b| a+b)(input)
 }
 
-fn lines_to_overlaps(input : &str) -> IResult<&str, Vec<u16>> {
-    many1(line_to_overlap)(input)
+fn fold_lines_to_overlaps(input : &str) -> IResult<&str, u16 > {
+    fold_many1(line_to_overlap, || 0, |a,b| a+b)(input)
 }
 
 fn main() {
@@ -61,14 +60,22 @@ fn main() {
     let puzzle = fs::read_to_string("./AOCDay04.txt").unwrap();
 
     let t1= Instant::now();
-    match lines_to_containments(&puzzle) {
-        Ok((_, res)) => {println!("pt1: {}", res.iter().sum::<u16>())},
+    // match lines_to_containments(&puzzle) {
+    //     Ok((_, res)) => {println!("pt1: {}", res.iter().sum::<u16>())},
+    //     _ => println!("error!")
+    // }
+    match fold_lines_to_containments(&puzzle) {
+        Ok((_, res)) => {println!("pt1: {}", res)},
         _ => println!("error!")
     }
 
     let t2= Instant::now();
-    match lines_to_overlaps(&puzzle) {
-        Ok((_, res)) => {println!("pt2: {}", res.iter().sum::<u16>())},
+    // match lines_to_overlaps(&puzzle) {
+    //     Ok((_, res)) => {println!("pt2: {}", res.iter().sum::<u16>())},
+    //     _ => println!("error!")
+    // }
+    match fold_lines_to_overlaps(&puzzle) {
+        Ok((_, res)) => {println!("pt2: {}", res)},
         _ => println!("error!")
     }
 
