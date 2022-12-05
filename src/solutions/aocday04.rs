@@ -7,7 +7,6 @@ use nom::{
     IResult,
 };
 
-use std::fs;
 use std::num::ParseIntError;
 use std::time::Instant;
 
@@ -54,23 +53,38 @@ fn fold_lines_to_overlaps(input : &str) -> IResult<&str, u16 > {
     fold_many1(line_to_overlap, || 0, |a,b| a+b)(input)
 }
 
-fn main() {
+pub fn solve_and_print() {
+    println!("\nsolving day 04:");
     let t0= Instant::now();
-    let puzzle = include_str!("../AOCDay04.txt");
+    let puzzle = include_str!("../../AOCDay04.txt");
 
     let t1= Instant::now();
     match fold_lines_to_containments(puzzle) {
-        Ok((_, res)) => {println!("pt1: {}", res)},
+        Ok((_, res)) => {println!("solution pt1: {}", res)},
         _ => println!("error!")
     }
 
     let t2= Instant::now();
 
     match fold_lines_to_overlaps(puzzle) {
-        Ok((_, res)) => {println!("pt2: {}", res)},
+        Ok((_, res)) => {println!("solution pt2: {}", res)},
         _ => println!("error!")
     }
 
     let t3= Instant::now();
-    println!("timing info:\nload: {}\npt1: {}\npt2: {}",t1.duration_since(t0).as_micros(), t2.duration_since(t1).as_micros(),t3.duration_since(t2).as_micros());
+    println!("\nday 04 timing info:\nload: {}\npt1: {}\npt2: {}",
+             t1.duration_since(t0).as_micros(),
+             t2.duration_since(t1).as_micros(),
+             t3.duration_since(t2).as_micros());
 }
+
+#[inline]
+pub fn fibonacci(n: u64) -> u64 {
+    match n {
+        0 => 1,
+        1 => 1,
+        n => fibonacci(n-1) + fibonacci(n-2),
+    }
+}
+
+

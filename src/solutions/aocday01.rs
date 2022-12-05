@@ -7,6 +7,7 @@ use nom::{
     IResult,
 };
 use std::fs;
+use std::time::Instant;
 
 fn str_to_int(input: &str) -> Result<u32, std::num::ParseIntError> {
     input.parse::<u32>()
@@ -36,15 +37,24 @@ fn all_calories(input: &str) -> IResult<&str, Vec<u32>> {
     Ok((leftover, vec))
 }
 
-fn main() {
-    let puzzle = fs::read_to_string("./AOCDay01.txt").unwrap();
-    let (_, mut all_calorie_result) = all_calories(&puzzle).unwrap();
+pub fn solve_and_print() {
+    println!("\nsolving day 01:");
+    let t0= Instant::now();
+    let puzzle = include_str!("../../AOCDay01.txt");
+
+    let t1= Instant::now();
+    let (_, mut all_calorie_result) = all_calories(puzzle).unwrap();
 
     println!("part 1 {:?}", all_calorie_result.iter().max().unwrap());
 
+    let t2= Instant::now();
     if let ([a, b], c, ..) = all_calorie_result.select_nth_unstable_by(2, |a, b| b.cmp(a)) {
-        eprint!("part 2 {} (from {} {} {})", *a + *b + *c, a, b, c)
-    } else {
-        panic!("that should've worked...")
+        println!("part 2 {} (from {} {} {})", *a + *b + *c, a, b, c)
     }
+
+    let t3= Instant::now();
+    println!("\nday 01 timing info:\nload: {}\npt1: {}\npt2: {}",
+             t1.duration_since(t0).as_micros(),
+             t2.duration_since(t1).as_micros(),
+             t3.duration_since(t2).as_micros());
 }

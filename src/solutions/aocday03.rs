@@ -90,20 +90,25 @@ fn parse_trio_badges(input: &str) -> IResult<&str, Vec<u32>> {
     many1(parse_trio_badge)(input)
 }
 
-fn main() {
+pub fn solve_and_print() {
+    println!("\nsolving day 03:");
     let t0= Instant::now();
-    let puzzle = fs::read_to_string("./AOCDay03.txt").unwrap();
+    let puzzle = include_str!("../../AOCDay03.txt");
+    // let puzzle = fs::read_to_string("./AOCDay03.txt").unwrap();
 
     let t1= Instant::now();
-    if let Ok((_, priorities)) = lines_to_priorities(&puzzle) {
-        println!("{}", priorities.iter().sum::<u32>())
+    if let Ok((_, priorities)) = lines_to_priorities(puzzle) {
+        println!("solution pt 1: {}", priorities.iter().sum::<u32>())
     }
 
     let t2= Instant::now();
-    if let Ok((_, badge_priorities)) = parse_trio_badges(&puzzle) {
-        println!("{}", badge_priorities.iter().sum::<u32>())
+    if let Ok((_, badge_priorities)) = parse_trio_badges(puzzle) {
+        println!("solution pt 2: {}", badge_priorities.iter().sum::<u32>())
     };
 
     let t3= Instant::now();
-    println!("timing info:\nload: {}\npt1: {}\npt2: {}",t1.duration_since(t0).as_micros(), t2.duration_since(t1).as_micros(),t3.duration_since(t2).as_micros());
+    println!("\nday 03 timing info:\nload: {}\npt1: {}\npt2: {}",
+             t1.duration_since(t0).as_micros(),
+             t2.duration_since(t1).as_micros(),
+             t3.duration_since(t2).as_micros());
 }
