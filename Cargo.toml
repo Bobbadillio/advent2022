@@ -4,10 +4,16 @@ version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace]
 
 [dependencies]
+solutions = {path = "./solutions"}
 nom = "7.1.1"
 criterion = "0.4"
+
+[[bin]]
+name = "advent2022"
+path = "src/main.rs"
 
 [[bench]]
 name = "my_benchmark"

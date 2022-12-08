@@ -22,7 +22,7 @@ fn digit_parser(input: &str) -> IResult<&str, u16> {
     map_res(take_while(is_digit), from_digits)(input)
 }
 
-fn line_to_containment(input: &str) -> IResult<&str, u16> {
+fn line_to_containment(input: &str) -> IResult<&str, u8> {
     let (leftover, (a,_,b,_,c,_,d,_)) = tuple(
         (digit_parser, tag("-"), digit_parser, tag(","),digit_parser, tag("-"), digit_parser, opt(newline))
     )(input)?;
@@ -33,7 +33,7 @@ fn line_to_containment(input: &str) -> IResult<&str, u16> {
     Ok((leftover,is_contained))
 }
 
-fn line_to_overlap(input: &str) -> IResult<&str, u16> {
+fn line_to_overlap(input: &str) -> IResult<&str, u8> {
     let (leftover, (a,_,b,_,c,_,d,_)) = tuple(
         (digit_parser, tag("-"), digit_parser, tag(","),digit_parser, tag("-"), digit_parser, opt(newline))
     )(input)?;
@@ -45,12 +45,12 @@ fn line_to_overlap(input: &str) -> IResult<&str, u16> {
     Ok((leftover, is_overlap))
 }
 
-fn fold_lines_to_containments(input : &str) -> IResult<&str, u16> {
-    fold_many1(line_to_containment, ||0, |a,b| a+b)(input)
+pub fn fold_lines_to_containments(input : &str) -> IResult<&str, u16> {
+    fold_many1(line_to_containment, ||0u16, |a,b| a +b as u16)(input)
 }
 
-fn fold_lines_to_overlaps(input : &str) -> IResult<&str, u16 > {
-    fold_many1(line_to_overlap, || 0, |a,b| a+b)(input)
+pub fn fold_lines_to_overlaps(input : &str) -> IResult<&str, u16 > {
+    fold_many1(line_to_overlap, || 0u16, |a,b| a+b as u16)(input)
 }
 
 pub fn solve_and_print() {
@@ -76,15 +76,6 @@ pub fn solve_and_print() {
              t1.duration_since(t0).as_micros(),
              t2.duration_since(t1).as_micros(),
              t3.duration_since(t2).as_micros());
-}
-
-#[inline]
-pub fn fibonacci(n: u64) -> u64 {
-    match n {
-        0 => 1,
-        1 => 1,
-        n => fibonacci(n-1) + fibonacci(n-2),
-    }
 }
 
 
