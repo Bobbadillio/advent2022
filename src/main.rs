@@ -5,5 +5,6 @@ fn main() {
     // aocday02::solve_and_print();
     // aocday03::solve_and_print();
     // aocday04::solve_and_print();
-    aocday05::solve_and_print();
+    // aocday05::solve_and_print();
+    aocday06::solve_and_print();
 }
