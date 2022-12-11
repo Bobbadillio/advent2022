@@ -95,6 +95,10 @@ pub fn day_06_both_benchmark(c: &mut Criterion) {
     let puzzle = include_str!("../AOCDay06.txt");
     c.bench_function("day 06 both", |b| b.iter(|| aocday06::solve_both(black_box(puzzle.as_bytes()))));
 }
+pub fn day_10_both_benchmark(c: &mut Criterion) {
+    let puzzle = include_str!("../AOCDay10.txt");
+    c.bench_function("day 10", |b| b.iter(|| aocday10::solve_both(black_box(puzzle))));
+}
 
 
 criterion_group!(benches,
@@ -103,6 +107,7 @@ criterion_group!(benches,
     // day_03_01_benchmark, day_03_02_benchmark,
     // day_04_01_benchmark, day_04_02_benchmark,
     // day_05_01_benchmark, day_05_02_benchmark,day_05_parse_benchmark,
-    day_06_01_benchmark, day_06_02_benchmark, day_06_both_benchmark
+    // day_06_01_benchmark, day_06_02_benchmark, day_06_both_benchmark
+    day_10_both_benchmark
 );
 criterion_main!(benches);

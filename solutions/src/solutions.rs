@@ -4,6 +4,7 @@ pub mod aocday03;
 pub mod aocday04;
 pub mod aocday05;
 pub mod aocday06;
+pub mod aocday10;
 
 pub fn add(left: usize, right: usize) -> usize {
     left + right
