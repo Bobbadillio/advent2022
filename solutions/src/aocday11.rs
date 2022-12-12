@@ -11,7 +11,7 @@ use nom::sequence::{delimited, tuple};
 struct Monkey {
     id: u16,
     items: VecDeque<u16>,
-    operation: Box<dyn FnMut(u16)-> u16 >,
+    operation: Box<dyn Fn(u16)-> u16 >,
     test_div: u16,
     true_case: u16,
     false_case: u16
@@ -47,12 +47,12 @@ fn parse_monkey(input: &str) -> IResult<&str, Monkey> {
     Ok((leftover,  Monkey{id: digits, items: VecDeque::from(starting_items), operation:operation, test_div, true_case, false_case}))
 }
 
-fn parse_operation(input: &str) -> IResult<&str, Box<dyn FnMut(u16) -> u16>> {
+fn parse_operation(input: &str) -> IResult<&str, Box<dyn Fn(u16) -> u16>> {
     let (leftover, (left, op, right)) = delimited(
         tag("  Operation: new = "),
         tuple((tag("old"), take(3usize), alt((digit1, tag("old"))))),
         line_ending)(input)?;
-    let operation : Box<dyn FnMut(u16)->u16> = match (op, right) {
+    let operation : Box<dyn Fn(u16)->u16> = match (op, right) {
         (" * ", "old") => Box::new( |x | x*x),
         (" + ", "old") => Box::new( move |x | x+x),
         (" * ", string) => {
